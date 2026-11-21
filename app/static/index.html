@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QueryCraft | Block by block, query by query</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="ambient-grid"></div>
+  <header class="topbar">
+    <a class="brand" href="/">
+      <span class="brand-cube">Q</span>
+      <span>QUERY<span class="brand-accent">CRAFT</span><small>TEXT-TO-SQL WORKBENCH</small></span>
+    </a>
+    <div class="topbar-right">
+      <span class="status-dot" id="apiDot"></span>
+      <span id="apiStatus" class="status-text">Checking API…</span>
+      <span class="version-chip">BETA / 01</span>
+    </div>
+  </header>
+
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="tiny-cube"></span> YOUR DATABASE, YOUR LANGUAGE</div>
+        <h1>Build queries.<br><span>Not barriers.</span></h1>
+        <p>Turn plain English into precise SQL. Give QueryCraft your schema, describe what you need, and let the prompt engine do the heavy lifting.</p>
+        <div class="hero-tags"><span>✦ Schema-aware</span><span>✦ Prompt experiments</span><span>✦ Read-only execution</span></div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="pixel-sun"></div><div class="pixel-cloud cloud-one"></div><div class="pixel-cloud cloud-two"></div>
+        <div class="pixel-hill hill-back"></div><div class="pixel-hill hill-front"></div>
+        <div class="floating-cube cube-one"></div><div class="floating-cube cube-two"></div>
+        <div class="art-label">CRAFTING<br><b>INTELLIGENCE</b></div>
+      </div>
+    </section>
+
+    <div class="workspace">
+      <aside class="sidebar">
+        <div class="side-heading">WORKSPACE</div>
+        <button class="nav-item active"><span>▦</span> Query Builder <i>01</i></button>
+        <button class="nav-item" id="showPromptInfo"><span>✳</span> Prompt Lab <i>02</i></button>
+        <div class="side-divider"></div>
+        <div class="side-heading">QUICK START</div>
+        <button class="quick-link" id="loadSample">↳ Load sample database</button>
+        <button class="quick-link" id="clearQuestion">↳ Clear question</button>
+        <div class="sidebar-note">
+          <div class="note-icon">◇</div>
+          <b>Small steps. Better queries.</b>
+          <p>Try different prompt versions to see how context and examples affect SQL quality.</p>
+        </div>
+        <div class="side-footer">QUERYCRAFT BUILD 0.1.0</div>
+      </aside>
+
+      <section class="main-panel">
+        <div class="panel-heading">
+          <div><div class="eyebrow">01 / CONFIGURE</div><h2>Set your context</h2></div>
+          <span class="step-pill">STEP 1 OF 3</span>
+        </div>
+
+        <div class="form-grid">
+          <div class="field-card schema-card">
+            <div class="field-title"><span class="field-icon">▤</span><div><b>Database schema</b><small>Tell the model what tables and columns exist.</small></div></div>
+            <div class="schema-toolbar"><span class="file-dot"></span><span>schema.sql</span><span class="schema-hint">SQL / schema description</span></div>
+            <textarea id="schemaInput" spellcheck="false" aria-label="Database schema" placeholder="TABLE employees (&#10;  employee_id INTEGER PRIMARY KEY,&#10;  name TEXT,&#10;  department TEXT,&#10;  salary REAL&#10;);"></textarea>
+            <div class="schema-bottom"><span id="schemaCount">0 characters</span><button class="text-button" id="resetSchema">↺ Reset sample schema</button></div>
+          </div>
+
+          <div class="field-card prompt-card">
+            <div class="field-title"><span class="field-icon">✳</span><div><b>Prompt strategy</b><small>Choose the prompt version to experiment with.</small></div></div>
+            <label class="label" for="promptVersion">PROMPT VERSION</label>
+            <select id="promptVersion">
+              <option value="v1">V1 · Baseline</option>
+              <option value="v2">V2 · Schema-aware</option>
+              <option value="v3" selected>V3 · Few-shot</option>
+              <option value="v4">V4 · Guarded & repair-ready</option>
+            </select>
+            <div class="prompt-description" id="promptDescription">Adds examples to guide query structure and output consistency.</div>
+            <div class="prompt-note"><span>✦</span> Same question + different prompt = useful comparison.</div>
+          </div>
+        </div>
+
+        <div class="field-card question-card">
+          <div class="field-title"><span class="field-icon">⌕</span><div><b>What do you want to know?</b><small>Ask in plain English. No SQL knowledge required.</small></div></div>
+          <textarea id="questionInput" class="question-input" placeholder="e.g. Show the five highest-paid employees in Engineering..." maxlength="1500"></textarea>
+          <div class="question-footer"><span>Be specific for the best results.</span><span id="questionCount">0 / 1500</span></div>
+          <div class="example-prompts">
+            <span>TRY:</span>
+            <button data-question="Show the five highest-paid employees in Engineering.">Top salaries</button>
+            <button data-question="What is the average salary in each department?">Average by department</button>
+            <button data-question="List all projects with their department names.">Join tables</button>
+          </div>
+        </div>
+
+        <div class="action-row">
+          <div class="privacy-note"><span>◈</span> API key stays on the server. Queries are read-only.</div>
+          <button class="primary-button" id="generateBtn"><span>✦</span> Generate SQL <kbd>↵</kbd></button>
+        </div>
+
+        <section class="results-section" id="resultsSection" hidden>
+          <div class="results-heading"><div><div class="eyebrow">02 / OUTPUT</div><h2>Your query is ready<span class="heading-period">.</span></h2></div><span id="validationBadge" class="result-badge">CHECKING</span></div>
+          <div class="result-grid">
+            <div class="field-card output-card">
+              <div class="output-toolbar"><b>GENERATED SQL</b><div><button class="mini-button" id="copySql">Copy</button><button class="mini-button" id="validateSql">Validate</button></div></div>
+              <pre><code id="sqlOutput">-- Your generated SQL will appear here</code></pre>
+              <div class="output-foot" id="validationMessage">Waiting for validation…</div>
+            </div>
+            <div class="field-card explanation-card">
+              <div class="output-toolbar"><b>PLAIN-ENGLISH EXPLANATION</b><span class="sparkle">✦</span></div>
+              <p id="explanationOutput">Your query explanation will appear here.</p>
+              <div class="meta-row"><span>MODEL</span><b id="modelName">—</b></div>
+              <div class="meta-row"><span>PROMPT</span><b id="usedVersion">—</b></div>
+            </div>
+          </div>
+          <div class="execute-row"><div><b>Want to see the data?</b><small>Execute against the built-in sample database. Custom schemas are generation-only unless you load a matching database.</small></div><button class="secondary-button" id="executeBtn">▶ Execute on demo DB</button></div>
+          <div class="field-card table-card" id="tableCard" hidden><div class="output-toolbar"><b>QUERY RESULTS</b><span id="rowCount" class="row-count"></span></div><div class="table-wrap" id="tableWrap"></div></div>
+        </section>
+
+        <section class="prompt-lab" id="promptLab" hidden>
+          <div class="results-heading"><div><div class="eyebrow">EXPERIMENT / 03</div><h2>Prompt lab<span class="heading-period">.</span></h2></div><span class="step-pill">A/B TESTING</span></div>
+          <p class="lab-intro">Run the same question through every prompt version. Compare how the prompt strategy changes the generated SQL.</p>
+          <button class="primary-button" id="compareBtn">✦ Compare all versions</button>
+          <div id="comparisonResults" class="comparison-grid"></div>
+        </section>
+      </section>
+    </div>
+    <footer class="page-footer"><span>QUERYCRAFT © 2026</span><span>CRAFTED WITH LOGIC <b>◆</b> POWERED BY LANGUAGE</span><span>BUILT FOR THE CURIOUS.</span></footer>
+  </main>
+  <div class="toast" id="toast"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
